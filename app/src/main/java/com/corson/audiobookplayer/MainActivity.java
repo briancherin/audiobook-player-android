@@ -24,6 +24,8 @@ public class MainActivity extends AppCompatActivity {
 
     Boolean playing = false;
 
+    final int SEEK_INCREMENT_TIME = 10000;  //10 second increment forward / backward
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -71,10 +73,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 if(mediaPlayer.isPlaying()) {
-                    int currentPosition = mediaPlayer.getCurrentPosition();
-                    int forwardPosition = currentPosition + 10000;
-                    if (forwardPosition > mediaPlayer.getDuration()) forwardPosition = mediaPlayer.getDuration();
-                    mediaPlayer.seekTo(forwardPosition);
+                    incrementSeekPosition(mediaPlayer, SEEK_INCREMENT_TIME);
                 }
             }
         });
@@ -83,10 +82,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 if(mediaPlayer.isPlaying()) {
-                    int currentPosition = mediaPlayer.getCurrentPosition();
-                    int backwardPosition = currentPosition - 10000;
-                    if (backwardPosition < 0) backwardPosition = 0;
-                    mediaPlayer.seekTo(backwardPosition);
+                    incrementSeekPosition(mediaPlayer, -1 * SEEK_INCREMENT_TIME);
                 }
             }
         });
@@ -132,6 +128,17 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+    }
+
+    void incrementSeekPosition(MediaPlayer mediaPlayer, int changeInMillis) {
+        int currentPosition = mediaPlayer.getCurrentPosition();
+        int totalDuration = mediaPlayer.getDuration();
+
+        int newPosition = currentPosition + changeInMillis;
+        if (newPosition < 0) newPosition = 0;
+        if (newPosition > totalDuration) newPosition = totalDuration;
+
+        mediaPlayer.seekTo(newPosition);
     }
 
     String getTimestampFromMilli(long milli) {
