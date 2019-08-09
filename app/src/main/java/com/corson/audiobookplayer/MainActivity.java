@@ -1,19 +1,26 @@
 package com.corson.audiobookplayer;
 
-import androidx.appcompat.app.AppCompatActivity;
-
-import android.media.AudioManager;
-import android.media.MediaPlayer;
 import android.os.Bundle;
-import android.os.Handler;
+import android.util.Log;
 import android.view.View;
-import android.widget.Button;
-import android.widget.SeekBar;
-import android.widget.TextView;
 
-import java.io.IOException;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
-public class MainActivity extends AppCompatActivity {
+import com.amazonaws.mobile.client.AWSMobileClient;
+import com.amazonaws.mobile.client.Callback;
+import com.amazonaws.mobile.client.UserStateDetails;
+import com.corson.audiobookplayer.api.AudioStorageHelper;
+
+import java.util.ArrayList;
+
+public class MainActivity extends AppCompatActivity implements BookListRecyclerViewAdapter.ItemClickListener{
+
+    private AudioStorageHelper audioStorageHelper;
+
+    BookListRecyclerViewAdapter adapter;
+    RecyclerView recyclerView;
 
 
     @Override
@@ -21,5 +28,67 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        recyclerView = findViewById(R.id.bookListRecyclerView);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+
+
+        AWSMobileClient.getInstance().initialize(getApplicationContext(), new Callback<UserStateDetails>() {
+            @Override
+            public void onResult(UserStateDetails result) {
+                Log.i("INIT", "onResult: " + result.getUserState());
+                switch(result.getUserState()) {
+                    case SIGNED_IN:
+                        //Get list of books
+                        audioStorageHelper = new AudioStorageHelper();
+                        final ArrayList<String> bookKeys = audioStorageHelper.fetchBookKeys();
+                        System.out.println("FETCHED BOOK KEYS:");
+                        System.out.println(bookKeys);
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                adapter = new BookListRecyclerViewAdapter(getApplicationContext(), bookKeys);
+                                adapter.setClickListener(MainActivity.this);
+                                recyclerView.setAdapter(adapter);
+                            }
+                        });
+
+
+                        break;
+                    case SIGNED_OUT:
+                        showSignIn();
+                        break;
+                    default:
+                        AWSMobileClient.getInstance().signOut();
+                        break;
+                }
+            }
+
+            @Override
+            public void onError(Exception e) {
+                Log.e("INIT", "Initialization error.", e);
+            }
+        });
+
     }
+
+    public void showSignIn() {
+        AWSMobileClient.getInstance().showSignIn(this, new Callback<UserStateDetails>() {
+            @Override
+            public void onResult(UserStateDetails result) {
+                Log.d("SHOW_SIGN_IN", "onResult: " + result.getUserState());
+            }
+
+            @Override
+            public void onError(Exception e) {
+                Log.e("SHOW_SIGN_IN", "onError: ", e);
+            }
+        });
+    }
+
+
+    @Override
+    public void onItemClick(View view, int position) {
+
+    }
+
 }
