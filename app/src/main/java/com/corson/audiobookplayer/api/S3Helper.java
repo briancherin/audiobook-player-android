@@ -1,17 +1,21 @@
 package com.corson.audiobookplayer.api;
 
+import com.amazonaws.HttpMethod;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.internal.Constants;
+import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
 import com.amazonaws.services.s3.model.ListObjectsRequest;
 import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
-public class S3Helper {
+public class  S3Helper {
     private AmazonS3Client s3;
 
     public S3Helper() {
@@ -42,6 +46,18 @@ public class S3Helper {
         }
 
         return keys;
+    }
+
+    public String getPresignedUrl(String bucketName, String key, int hoursUntilExpires) {
+        String url = "";
+
+        GeneratePresignedUrlRequest request = new GeneratePresignedUrlRequest(bucketName, key);
+        request.setMethod(HttpMethod.GET);
+        request.setExpiration(DateUtils.addHoursToDate(new Date(), hoursUntilExpires));
+
+        URL presignedUrl = s3.generatePresignedUrl(request);
+
+        return presignedUrl.toString();
     }
 
 

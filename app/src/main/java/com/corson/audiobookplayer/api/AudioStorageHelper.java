@@ -23,4 +23,8 @@ public class AudioStorageHelper {
     public ArrayList<String> fetchBookKeys() {
         return s3Helper.listPrivateObjectKeys(BUCKET_NAME);
     }
+
+    public String getPresignedUrl(String bookKey, int hoursUntilExpires) {
+        return s3Helper.getPresignedUrl(BUCKET_NAME, bookKey, hoursUntilExpires);
+    }
 }
