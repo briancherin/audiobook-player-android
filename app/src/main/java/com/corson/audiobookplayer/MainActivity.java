@@ -1,5 +1,6 @@
 package com.corson.audiobookplayer;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -11,17 +12,23 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.amazonaws.mobile.client.AWSMobileClient;
 import com.amazonaws.mobile.client.Callback;
 import com.amazonaws.mobile.client.UserStateDetails;
-import com.corson.audiobookplayer.api.AudioStorageHelper;
+import com.corson.audiobookplayer.api.AudioManager;
+import com.corson.audiobookplayer.api.Factory;
+import com.corson.audiobookplayer.api.ICallback;
+import com.corson.audiobookplayer.model.Audiobook;
 
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity implements BookListRecyclerViewAdapter.ItemClickListener{
 
-    private AudioStorageHelper audioStorageHelper;
+
+    private Factory factory;
+    private AudioManager audioManager;
 
     BookListRecyclerViewAdapter adapter;
     RecyclerView recyclerView;
 
+    ArrayList<Audiobook> savedBooks;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,6 +38,9 @@ public class MainActivity extends AppCompatActivity implements BookListRecyclerV
         recyclerView = findViewById(R.id.bookListRecyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
+        factory = new Factory(this);
+
+        audioManager = factory.createAudioManager();
 
         AWSMobileClient.getInstance().initialize(getApplicationContext(), new Callback<UserStateDetails>() {
             @Override
@@ -39,18 +49,31 @@ public class MainActivity extends AppCompatActivity implements BookListRecyclerV
                 switch(result.getUserState()) {
                     case SIGNED_IN:
                         //Get list of books
-                        audioStorageHelper = new AudioStorageHelper();
-                        final ArrayList<String> bookKeys = audioStorageHelper.fetchBookKeys();
-                        System.out.println("FETCHED BOOK KEYS:");
-                        System.out.println(bookKeys);
-                        runOnUiThread(new Runnable() {
+
+                        audioManager.listBooks(new ICallback<ArrayList<Audiobook>>() {
                             @Override
-                            public void run() {
-                                adapter = new BookListRecyclerViewAdapter(getApplicationContext(), bookKeys);
-                                adapter.setClickListener(MainActivity.this);
-                                recyclerView.setAdapter(adapter);
+                            public void onResult(ArrayList<Audiobook> booksResult) {
+                                savedBooks = booksResult;
+
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        adapter = new BookListRecyclerViewAdapter(getApplicationContext(), savedBooks);
+                                        adapter.setClickListener(MainActivity.this);
+                                        recyclerView.setAdapter(adapter);
+
+                                        System.out.println("FETCHED BOOK KEYS:");
+                                        System.out.println(savedBooks);
+                                    }
+                                });
+
                             }
                         });
+
+
+
+
+
 
 
                         break;
@@ -88,7 +111,9 @@ public class MainActivity extends AppCompatActivity implements BookListRecyclerV
 
     @Override
     public void onItemClick(View view, int position) {
-
+        Intent intent = new Intent(MainActivity.this, Player.class);
+        intent.putExtra(MyConstants.BUNDLE_BOOK_KEY_EXTRA, savedBooks.get(position).getId());
+        startActivity(intent);
     }
 
 }

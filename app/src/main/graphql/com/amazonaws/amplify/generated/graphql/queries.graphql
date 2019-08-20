@@ -1,0 +1,24 @@
+# this is an auto generated file. This will be overwritten
+query GetBook($id: ID!) {
+  getBook(id: $id) {
+    id
+    title
+    currentPositionMillis
+    coverKey
+  }
+}
+query ListBooks(
+  $filter: ModelBookFilterInput
+  $limit: Int
+  $nextToken: String
+) {
+  listBooks(filter: $filter, limit: $limit, nextToken: $nextToken) {
+    items {
+      id
+      title
+      currentPositionMillis
+      coverKey
+    }
+    nextToken
+  }
+}

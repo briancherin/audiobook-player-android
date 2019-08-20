@@ -8,35 +8,25 @@ import android.widget.TextView;
 
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.corson.audiobookplayer.model.Audiobook;
+
+import org.jetbrains.annotations.NotNull;
+
 import java.util.List;
 
 public class BookListRecyclerViewAdapter extends RecyclerView.Adapter<BookListRecyclerViewAdapter.ViewHolder> {
 
-    private List<String> data;
+    private List<Audiobook> data;
     private LayoutInflater inflater;
     private ItemClickListener clickListener;
 
-    BookListRecyclerViewAdapter(Context context, List<String> data) {
+    BookListRecyclerViewAdapter(Context context, List<Audiobook> data) {
         this.inflater = LayoutInflater.from(context);
         this.data = data;
-    }
-
-
-    @Override
-    public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View view = inflater.inflate(R.layout.recyclerview_row, parent, false);
-        return new ViewHolder(view);
-    }
-
-    @Override
-    public void onBindViewHolder(ViewHolder holder, int position) {
-        String key = data.get(position);
-        holder.textViewKey.setText(key);
-    }
-
-    @Override
-    public int getItemCount() {
-        return data.size();
+        System.out.println("Created Adapter. book titles:");
+        for (Audiobook a : data) {
+            System.out.println(a.getTitle());
+        }
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
@@ -53,6 +43,29 @@ public class BookListRecyclerViewAdapter extends RecyclerView.Adapter<BookListRe
             if (clickListener != null) clickListener.onItemClick(view, getAdapterPosition());
         }
     }
+
+
+
+    @NotNull
+    @Override
+    public ViewHolder onCreateViewHolder(@NotNull ViewGroup parent, int viewType) {
+        View view = inflater.inflate(R.layout.recyclerview_row, parent, false);
+        return new ViewHolder(view);
+    }
+
+    @Override
+    public void onBindViewHolder(@NotNull ViewHolder holder, int position) {
+        Audiobook book = data.get(position);
+        holder.textViewKey.setText(book.getTitle());
+        System.out.println("Binding book, title: " + book.getTitle());
+    }
+
+    @Override
+    public int getItemCount() {
+        return data.size();
+    }
+
+
 
     void setClickListener(ItemClickListener itemClickListener) {
         this.clickListener = itemClickListener;
