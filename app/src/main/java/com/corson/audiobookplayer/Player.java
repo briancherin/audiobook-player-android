@@ -2,6 +2,7 @@ package com.corson.audiobookplayer;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.media.AudioAttributes;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Bundle;
@@ -65,7 +66,12 @@ public class Player extends AppCompatActivity {
         String audioUrl = audioStore.getAudioStreamUrl(bookId);
 
         mediaPlayer = new MediaPlayer();
-        mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
+        mediaPlayer.setAudioAttributes(
+                new AudioAttributes.Builder()
+                        .setUsage(AudioAttributes.USAGE_MEDIA)
+                        .setContentType(AudioAttributes.CONTENT_TYPE_MOVIE)
+                        .build());
+
         try {
             mediaPlayer.setDataSource(audioUrl);
         } catch (IOException e) {
