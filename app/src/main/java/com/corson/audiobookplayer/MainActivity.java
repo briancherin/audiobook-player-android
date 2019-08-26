@@ -40,7 +40,11 @@ public class MainActivity extends AppCompatActivity implements BookListRecyclerV
 
         factory = new Factory(this);
 
-        audioManager = factory.createAudioManager();
+        try {
+            audioManager = factory.createAudioManager();
+        } catch (Factory.NoContextProvidedException e) {
+            e.printStackTrace();
+        }
 
         AWSMobileClient.getInstance().initialize(getApplicationContext(), new Callback<UserStateDetails>() {
             @Override
@@ -69,12 +73,6 @@ public class MainActivity extends AppCompatActivity implements BookListRecyclerV
 
                             }
                         });
-
-
-
-
-
-
 
                         break;
                     case SIGNED_OUT:
@@ -112,7 +110,8 @@ public class MainActivity extends AppCompatActivity implements BookListRecyclerV
     @Override
     public void onItemClick(View view, int position) {
         Intent intent = new Intent(MainActivity.this, Player.class);
-        intent.putExtra(MyConstants.BUNDLE_BOOK_KEY_EXTRA, savedBooks.get(position).getId());
+        intent.putExtra(MyConstants.BUNDLE_BOOK_ID_EXTRA, savedBooks.get(position).getId());
+        intent.putExtra(MyConstants.BUNDLE_BOOK_TITLE_EXTRA, savedBooks.get(position).getTitle());
         startActivity(intent);
     }
 

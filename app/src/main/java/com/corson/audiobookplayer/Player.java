@@ -11,6 +11,9 @@ import android.widget.Button;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import com.corson.audiobookplayer.api.AudioStore;
+import com.corson.audiobookplayer.api.Factory;
+
 import java.io.IOException;
 
 public class Player extends AppCompatActivity {
@@ -23,17 +26,36 @@ public class Player extends AppCompatActivity {
     TextView progressTextView;
     SeekBar seekBar;
 
+    AudioStore audioStore;
+
     Boolean playing = false;
 
     MediaPlayer mediaPlayer;
     final int SEEK_INCREMENT_TIME = 10000;  //10 second increment forward / backward
+
+    String bookId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_player);
 
-        String audioUrl = "https://test-audio-bucket-345345.s3.amazonaws.com/Spinning+Silver+(Unabridged).m4b";
+        audioStore = (new Factory()).createAudioStore();
+
+        if (savedInstanceState == null) {
+            Bundle extras = getIntent().getExtras();
+            if (extras == null) {
+                bookId = null;
+            } else {
+                bookId = extras.getString(MyConstants.BUNDLE_BOOK_ID_EXTRA);
+            }
+        } else {
+            bookId = (String) savedInstanceState.getSerializable(MyConstants.BUNDLE_BOOK_ID_EXTRA);
+        }
+
+        String audioUrl = audioStore.getAudioStreamUrl(bookId);
+
+       // String audioUrl = "https://test-audio-bucket-345345.s3.amazonaws.com/Spinning+Silver+(Unabridged).m4b";
 
         mediaPlayer = new MediaPlayer();
         mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
