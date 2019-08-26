@@ -19,8 +19,8 @@
 
             <androidx.appcompat.widget.AppCompatImageView
                 android:id="@+id/recycler_view_row_thumbnail"
-                android:layout_width="0dp"
-                android:layout_height="100dp"
+                android:layout_width="80dp"
+                android:layout_height="80dp"
                 app:layout_constraintBottom_toBottomOf="@+id/recycler_view_row_book_key"
                 app:layout_constraintEnd_toStartOf="@+id/recycler_view_row_book_key"
                 app:layout_constraintStart_toStartOf="parent"
