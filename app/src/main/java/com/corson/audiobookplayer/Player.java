@@ -34,6 +34,7 @@ public class Player extends AppCompatActivity {
     final int SEEK_INCREMENT_TIME = 10000;  //10 second increment forward / backward
 
     String bookId;
+    String bookTitle;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,11 +47,19 @@ public class Player extends AppCompatActivity {
             Bundle extras = getIntent().getExtras();
             if (extras == null) {
                 bookId = null;
+                bookTitle = null;
             } else {
                 bookId = extras.getString(MyConstants.BUNDLE_BOOK_ID_EXTRA);
+                bookTitle = extras.getString(MyConstants.BUNDLE_BOOK_TITLE_EXTRA);
             }
         } else {
             bookId = (String) savedInstanceState.getSerializable(MyConstants.BUNDLE_BOOK_ID_EXTRA);
+            bookTitle = (String) savedInstanceState.getSerializable(MyConstants.BUNDLE_BOOK_TITLE_EXTRA);
+        }
+
+        if (bookTitle != null) {
+            getActionBar().setTitle(bookTitle);
+            getSupportActionBar().setTitle(bookTitle);
         }
 
         String audioUrl = audioStore.getAudioStreamUrl(bookId);
