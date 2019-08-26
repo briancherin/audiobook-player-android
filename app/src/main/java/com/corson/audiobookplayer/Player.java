@@ -58,7 +58,6 @@ public class Player extends AppCompatActivity {
         }
 
         if (bookTitle != null) {
-            getActionBar().setTitle(bookTitle);
             getSupportActionBar().setTitle(bookTitle);
         }
 
