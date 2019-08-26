@@ -29,9 +29,10 @@ public class Player extends AppCompatActivity {
     AudioStore audioStore;
 
     Boolean playing = false;
+    Boolean mediaPlayerInitialized = false;
 
     MediaPlayer mediaPlayer;
-    final int SEEK_INCREMENT_TIME = 10000;  //10 second increment forward / backward
+    final int SEEK_INCREMENT_TIME_MILLIS = 10000;  //10 second increment forward / backward
 
     String bookId;
     String bookTitle;
@@ -63,8 +64,6 @@ public class Player extends AppCompatActivity {
 
         String audioUrl = audioStore.getAudioStreamUrl(bookId);
 
-       // String audioUrl = "https://test-audio-bucket-345345.s3.amazonaws.com/Spinning+Silver+(Unabridged).m4b";
-
         mediaPlayer = new MediaPlayer();
         mediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
         try {
@@ -88,6 +87,7 @@ public class Player extends AppCompatActivity {
                     playButton.setText("Pause");
                     if(!mediaPlayer.isPlaying()){
                         mediaPlayer.start();
+                        mediaPlayerInitialized = true;
                         seekBar.setMax(mediaPlayer.getDuration()/1000);
                     }
                     playing = true;
@@ -105,7 +105,7 @@ public class Player extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 if(mediaPlayer.isPlaying()) {
-                    incrementSeekPosition(mediaPlayer, SEEK_INCREMENT_TIME);
+                    incrementSeekPosition(mediaPlayer, SEEK_INCREMENT_TIME_MILLIS);
                 }
             }
         });
@@ -114,7 +114,7 @@ public class Player extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 if(mediaPlayer.isPlaying()) {
-                    incrementSeekPosition(mediaPlayer, -1 * SEEK_INCREMENT_TIME);
+                    incrementSeekPosition(mediaPlayer, -1 * SEEK_INCREMENT_TIME_MILLIS);
                 }
             }
         });
@@ -151,7 +151,7 @@ public class Player extends AppCompatActivity {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                if (mediaPlayer.isPlaying()) {
+                if (mediaPlayerInitialized && mediaPlayer.isPlaying()) {
                     int currentPositionSeconds = mediaPlayer.getCurrentPosition() / 1000;
                     seekBar.setProgress(currentPositionSeconds);
                     progressTextView.setText(getTimestampFromMilli(mediaPlayer.getCurrentPosition()) + " / " + getTimestampFromMilli(mediaPlayer.getDuration()));
