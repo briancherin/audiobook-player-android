@@ -37,6 +37,7 @@ public class Player extends AppCompatActivity {
 
     String bookId;
     String bookTitle;
+    String bookFileExtension;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,20 +51,24 @@ public class Player extends AppCompatActivity {
             if (extras == null) {
                 bookId = null;
                 bookTitle = null;
+                bookFileExtension = null;
             } else {
                 bookId = extras.getString(MyConstants.BUNDLE_BOOK_ID_EXTRA);
                 bookTitle = extras.getString(MyConstants.BUNDLE_BOOK_TITLE_EXTRA);
+                bookFileExtension = extras.getString(MyConstants.BUNDLE_BOOK_FILE_EXTENSION_EXTRA);
             }
         } else {
             bookId = (String) savedInstanceState.getSerializable(MyConstants.BUNDLE_BOOK_ID_EXTRA);
             bookTitle = (String) savedInstanceState.getSerializable(MyConstants.BUNDLE_BOOK_TITLE_EXTRA);
+            bookFileExtension = (String) savedInstanceState.getSerializable(MyConstants.BUNDLE_BOOK_FILE_EXTENSION_EXTRA);
         }
 
         if (bookTitle != null) {
             getSupportActionBar().setTitle(bookTitle);
         }
 
-        String audioUrl = audioStore.getAudioStreamUrl(bookId);
+        String audioUrl = audioStore.getAudioStreamUrl(bookId, bookFileExtension);
+        System.out.println("In Player: audioUrl: " + audioUrl);
 
         mediaPlayer = new MediaPlayer();
         mediaPlayer.setAudioAttributes(

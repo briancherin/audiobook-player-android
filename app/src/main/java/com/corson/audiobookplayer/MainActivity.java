@@ -112,6 +112,7 @@ public class MainActivity extends AppCompatActivity implements BookListRecyclerV
         Intent intent = new Intent(MainActivity.this, Player.class);
         intent.putExtra(MyConstants.BUNDLE_BOOK_ID_EXTRA, savedBooks.get(position).getId());
         intent.putExtra(MyConstants.BUNDLE_BOOK_TITLE_EXTRA, savedBooks.get(position).getTitle());
+        intent.putExtra(MyConstants.BUNDLE_BOOK_FILE_EXTENSION_EXTRA, savedBooks.get(position).getFileExtension());
         startActivity(intent);
     }
 

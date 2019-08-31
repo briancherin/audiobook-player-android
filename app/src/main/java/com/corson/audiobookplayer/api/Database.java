@@ -48,7 +48,7 @@ public class Database {
             public void onResponse(@Nonnull Response<ListBooksQuery.Data> response) {
                 ArrayList<Audiobook> books = new ArrayList<>();
                 for(ListBooksQuery.Item item : response.data().listBooks().items()) {
-                    books.add(new Audiobook(item.id(), item.title()));
+                    books.add(new Audiobook(item.id(), item.title(), item.fileExtension()));
                 }
 
                 clientCallback.onResult(books);

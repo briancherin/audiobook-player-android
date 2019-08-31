@@ -1,7 +1,5 @@
 package com.corson.audiobookplayer.api;
 
-import java.util.ArrayList;
-
 public class AmplifyAudioStore implements AudioStore {
 
     private static final String BUCKET_NAME = "audiobook-player-files-audiobkenv";
@@ -15,8 +13,9 @@ public class AmplifyAudioStore implements AudioStore {
     }
 
     @Override
-    public String getAudioStreamUrl(String bookId) {
-        return s3Helper.getPresignedUrl(BUCKET_NAME, bookId, HOURS_UNTIL_STREAM_EXPIRES);
+    public String getAudioStreamUrl(String bookId, String bookFileExtension) {
+        String fullFileKey = s3Helper.getFullFileKey(bookId, bookFileExtension);
+        return s3Helper.getPresignedUrl(BUCKET_NAME, fullFileKey, HOURS_UNTIL_STREAM_EXPIRES);
     }
 
 }

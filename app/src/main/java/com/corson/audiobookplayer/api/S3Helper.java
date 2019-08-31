@@ -65,6 +65,11 @@ public class  S3Helper {
         return "private/" + AuthHelper.getCurrentUserId();
     }
 
+    //Will return the full key for the file. Eg: file located at bucketName/fullFileKey
+    public String getFullFileKey(String fileKey, String fileExtension) {
+        return getPrivateUserFolder() + "/" + fileKey + "." + fileExtension;
+    }
+
 
     private String removePrefixFromKey(String keyWithPrefix) {
         String prefix = getPrivateUserFolder() + "/";
