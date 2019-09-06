@@ -141,8 +141,14 @@ public class Player extends AppCompatActivity {
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                if (mediaPlayer.isPlaying() && fromUser) {
+                if (mediaPlayerInitialized && fromUser) {
                     mediaPlayer.seekTo(progress * 1000);
+                    progressTextView.setText(getTimestampFromMilli(mediaPlayer.getCurrentPosition()) + " / " + getTimestampFromMilli(mediaPlayer.getDuration()));
+                }
+
+                //When paused, update the displayed current timestamp to reflect seek bar change
+                if (!playing) {
+//                    progressTextView.setText(getTimestampFromMilli())
                 }
             }
 
