@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
@@ -20,9 +21,9 @@ import java.io.IOException;
 public class Player extends AppCompatActivity {
 
 
-    Button playButton;
-    Button seekForward;
-    Button seekBackward;
+    ImageView playButton;
+    ImageView seekForward;
+    ImageView seekBackward;
     TextView percentBufferedTextView;
     TextView progressTextView;
     SeekBar seekBar;
@@ -95,7 +96,7 @@ public class Player extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 if(!playing){
-                    playButton.setText("Pause");
+                    setPlayButton(false);
                     if(!mediaPlayer.isPlaying()){
                         mediaPlayer.start();
                         mediaPlayerInitialized = true;
@@ -103,7 +104,7 @@ public class Player extends AppCompatActivity {
                     }
                     playing = true;
                 } else {
-                    playButton.setText("Play");
+                    setPlayButton(true);
                     if(mediaPlayer.isPlaying()){
                         mediaPlayer.pause();
                     }
@@ -200,6 +201,20 @@ public class Player extends AppCompatActivity {
      */
     private void setSeekBarSeconds(int seconds) {
         seekBar.setProgress(seconds);
+    }
+
+    /**
+     * Sets the image of the play/pause button based on pressToplay
+     * @param pressToPlay Boolean value that specifies whether the button should be
+     *                    changed to a play button or a pause button. If pressToPlay is
+     *                    true, the button will be made into a play button. Else, a pause button.
+     */
+    private void setPlayButton(boolean pressToPlay) {
+        if (pressToPlay) {
+            playButton.setImageResource(R.drawable.ic_play_arrow_black_24dp);
+        } else {
+            playButton.setImageResource(R.drawable.ic_pause_black_24dp);
+        }
     }
 
     String getTimestampFromMilli(long milli) {
