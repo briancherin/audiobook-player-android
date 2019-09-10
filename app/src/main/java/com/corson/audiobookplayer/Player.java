@@ -115,7 +115,7 @@ public class Player extends AppCompatActivity {
         seekForward.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(mediaPlayer.isPlaying()) {
+                if(mediaPlayerInitialized) {
                     incrementSeekPosition(mediaPlayer, SEEK_INCREMENT_TIME_MILLIS);
                 }
             }
@@ -124,7 +124,7 @@ public class Player extends AppCompatActivity {
         seekBackward.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(mediaPlayer.isPlaying()) {
+                if(mediaPlayerInitialized) {
                     incrementSeekPosition(mediaPlayer, -1 * SEEK_INCREMENT_TIME_MILLIS);
                 }
             }
@@ -146,10 +146,6 @@ public class Player extends AppCompatActivity {
                     progressTextView.setText(getTimestampFromMilli(mediaPlayer.getCurrentPosition()) + " / " + getTimestampFromMilli(mediaPlayer.getDuration()));
                 }
 
-                //When paused, update the displayed current timestamp to reflect seek bar change
-                if (!playing) {
-//                    progressTextView.setText(getTimestampFromMilli())
-                }
             }
 
             @Override
@@ -170,8 +166,8 @@ public class Player extends AppCompatActivity {
             public void run() {
                 if (mediaPlayerInitialized && mediaPlayer.isPlaying()) {
                     int currentPositionSeconds = mediaPlayer.getCurrentPosition() / 1000;
-                    seekBar.setProgress(currentPositionSeconds);
-                    progressTextView.setText(getTimestampFromMilli(mediaPlayer.getCurrentPosition()) + " / " + getTimestampFromMilli(mediaPlayer.getDuration()));
+                    setSeekBarSeconds(currentPositionSeconds);
+                    updateTimestampString();
                 }
                 progressHandler.postDelayed(this, 1000);
             }
@@ -188,6 +184,22 @@ public class Player extends AppCompatActivity {
         if (newPosition > totalDuration) newPosition = totalDuration;
 
         mediaPlayer.seekTo(newPosition);
+        setSeekBarSeconds(newPosition / 1000);
+        updateTimestampString();
+    }
+
+    private void updateTimestampString() {
+        progressTextView.setText(getTimestampFromMilli(mediaPlayer.getCurrentPosition()) + " / " + getTimestampFromMilli(mediaPlayer.getDuration()));
+    }
+
+    /**
+     * Set the progress of the seekbar based on the specified number of seconds.
+     * The location of the seekbar is based on the seekbar's maximum value,
+     * which is defined as the total number of seconds in the media player
+     * @param seconds
+     */
+    private void setSeekBarSeconds(int seconds) {
+        seekBar.setProgress(seconds);
     }
 
     String getTimestampFromMilli(long milli) {
