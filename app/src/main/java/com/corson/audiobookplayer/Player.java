@@ -3,23 +3,23 @@ package com.corson.audiobookplayer;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.media.AudioAttributes;
-import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.corson.audiobookplayer.api.AudioStore;
+import com.corson.audiobookplayer.api.AudiobookManager;
+import com.corson.audiobookplayer.api.DeviceInformationManager;
 import com.corson.audiobookplayer.api.Factory;
+import com.corson.audiobookplayer.api.IDeviceInformationManager;
 
 import java.io.IOException;
 
 public class Player extends AppCompatActivity {
-
 
     ImageView playButton;
     ImageView seekForward;
@@ -29,12 +29,15 @@ public class Player extends AppCompatActivity {
     SeekBar seekBar;
 
     AudioStore audioStore;
+    AudiobookManager audiobookManager;
+    IDeviceInformationManager deviceInformationManager;
+    Factory factory;
 
     Boolean playing = false;
     Boolean mediaPlayerInitialized = false;
 
     MediaPlayer mediaPlayer;
-    final int SEEK_INCREMENT_TIME_MILLIS = 10000;  //10 second increment forward / backward
+    final short SEEK_INCREMENT_TIME_MILLIS = 10000;  //10 second increment forward / backward
 
     String bookId;
     String bookTitle;
@@ -45,7 +48,10 @@ public class Player extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_player);
 
-        audioStore = (new Factory()).createAudioStore();
+        factory = new Factory(this);
+        audioStore = factory.createAudioStore();
+        audiobookManager = factory.createAudiobookManager();
+        deviceInformationManager = factory.createDeviceInformationManager();
 
         if (savedInstanceState == null) {
             Bundle extras = getIntent().getExtras();
@@ -85,6 +91,9 @@ public class Player extends AppCompatActivity {
         }
         mediaPlayer.prepareAsync();
 
+        restoreSavedTimestamp();
+
+
         playButton = findViewById(R.id.play_button);
         seekForward = findViewById(R.id.button_seek_forward);
         seekBackward = findViewById(R.id.button_seek_backward);
@@ -107,6 +116,7 @@ public class Player extends AppCompatActivity {
                     setPlayButton(true);
                     if(mediaPlayer.isPlaying()){
                         mediaPlayer.pause();
+                        updateCurrentPositionOnline();
                     }
                     playing = false;
                 }
@@ -162,15 +172,33 @@ public class Player extends AppCompatActivity {
 
         final Handler progressHandler = new Handler();
 
+        //Actions to perform every 1 second
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 if (mediaPlayerInitialized && mediaPlayer.isPlaying()) {
-                    int currentPositionSeconds = mediaPlayer.getCurrentPosition() / 1000;
+                    //Update the position of the progress bar to match the media player position
+                    int currentPositionSeconds = getCurrentTimestampSeconds();
                     setSeekBarSeconds(currentPositionSeconds);
-                    updateTimestampString();
+
+                    updateTimestampString();    //Update the display of the current position/timestamp
+
+                    //Save the current position to local storage.
+                    audiobookManager.updateCurrentPositionOffline(bookId, currentPositionSeconds);
                 }
                 progressHandler.postDelayed(this, 1000);
+            }
+        });
+
+        //Actions to perform every 5 seconds
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (mediaPlayerInitialized && mediaPlayer.isPlaying()) {
+                    updateCurrentPositionOnline();
+                }
+
+                progressHandler.postDelayed(this, 5000);
             }
         });
 
@@ -187,6 +215,10 @@ public class Player extends AppCompatActivity {
         mediaPlayer.seekTo(newPosition);
         setSeekBarSeconds(newPosition / 1000);
         updateTimestampString();
+    }
+
+    private int getCurrentTimestampSeconds() {
+        return mediaPlayer.getCurrentPosition() / 1000;
     }
 
     private void updateTimestampString() {
@@ -215,6 +247,31 @@ public class Player extends AppCompatActivity {
         } else {
             playButton.setImageResource(R.drawable.ic_pause_black_24dp);
         }
+    }
+
+    private void updateCurrentPositionOnline() {
+        audiobookManager.updateCurrentPositionOnline(bookId, getCurrentTimestampSeconds());
+    }
+
+
+    /**
+     * Set the seek position to the last timestamp listened to,
+     * either from the offline-saved timestamp, or from the database timestamp,
+     * depending on which is appropriate and more recent.
+     * TODO: Prompt user to give them the option to use the online timestamp (if it is different from the offline timestamp)
+     */
+
+    private void restoreSavedTimestamp() {
+
+        int timestamp;
+
+        if(deviceInformationManager.deviceIsOffline() || audiobookManager.isDeviceLastUsed(bookId)) {
+            timestamp = audiobookManager.getCurrentPositionOffline(bookId);
+        } else {
+            timestamp = audiobookManager.getCurrentPositionOnline(bookId);
+        }
+
+        setSeekBarSeconds(timestamp / 1000);
     }
 
     String getTimestampFromMilli(long milli) {

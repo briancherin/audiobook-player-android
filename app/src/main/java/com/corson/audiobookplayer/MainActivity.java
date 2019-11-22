@@ -12,7 +12,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.amazonaws.mobile.client.AWSMobileClient;
 import com.amazonaws.mobile.client.Callback;
 import com.amazonaws.mobile.client.UserStateDetails;
-import com.corson.audiobookplayer.api.AudioManager;
+import com.corson.audiobookplayer.api.AudiobookManager;
+import com.corson.audiobookplayer.api.IAudiobookManager;
 import com.corson.audiobookplayer.api.Factory;
 import com.corson.audiobookplayer.api.ICallback;
 import com.corson.audiobookplayer.model.Audiobook;
@@ -23,7 +24,7 @@ public class MainActivity extends AppCompatActivity implements BookListRecyclerV
 
 
     private Factory factory;
-    private AudioManager audioManager;
+    private AudiobookManager audiobookManager;
 
     BookListRecyclerViewAdapter adapter;
     RecyclerView recyclerView;
@@ -40,11 +41,8 @@ public class MainActivity extends AppCompatActivity implements BookListRecyclerV
 
         factory = new Factory(this);
 
-        try {
-            audioManager = factory.createAudioManager();
-        } catch (Factory.NoContextProvidedException e) {
-            e.printStackTrace();
-        }
+        audiobookManager = factory.createAudiobookManager();
+
 
         AWSMobileClient.getInstance().initialize(getApplicationContext(), new Callback<UserStateDetails>() {
             @Override
@@ -54,7 +52,7 @@ public class MainActivity extends AppCompatActivity implements BookListRecyclerV
                     case SIGNED_IN:
                         //Get list of books
 
-                        audioManager.listBooks(new ICallback<ArrayList<Audiobook>>() {
+                        audiobookManager.listBooks(new ICallback<ArrayList<Audiobook>>() {
                             @Override
                             public void onResult(ArrayList<Audiobook> booksResult) {
                                 savedBooks = booksResult;
