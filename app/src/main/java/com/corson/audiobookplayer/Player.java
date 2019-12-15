@@ -281,12 +281,16 @@ public class Player extends AppCompatActivity {
      */
     private void restoreSavedTimestamp() {
 
+        //First callback: check if this was the last-used device
+        //Second callback: get the timestamp last saved online
+        //Third callback: Ask the user if they want to use the offline (old) or online (new) timestamp
+
         //Check if the current device is the last device used
         audiobookManager.isDeviceLastUsed(bookId, new ICallback<Boolean>() {
             @Override
             public void onResult(Boolean isDeviceLastUsed) {
 
-                int timestampInSeconds;
+                final int offlineTimestampInSeconds = audiobookManager.getCurrentPositionOffline(bookId);
 
                 //Use the offline timestamp if the device is offline, or if this was the last
                 //device that was used to play this audiobook
@@ -294,34 +298,42 @@ public class Player extends AppCompatActivity {
                         || isDeviceLastUsed;
 
                 if(shouldUseOfflineTimestamp) {
-                    timestampInSeconds = audiobookManager.getCurrentPositionOffline(bookId);
-                    setSeekPosition(timestampInSeconds * 1000);
+                    setSeekPosition(offlineTimestampInSeconds * 1000);
                 } else {    //Could use online timestamp
-                    //TODO: Prompt user to choose between online and offline timestamp
-                    //("On another device, you were currently reading at [timestamp], [chapter name]")
 
-                    //Use the online timestamp
+
+                    //Get the online timestamp
                     audiobookManager.getCurrentPositionOnline(bookId, new ICallback<Integer>() {
                         @Override
-                        public void onResult(final Integer timestampInSeconds) {
+                        public void onResult(final Integer onlineTimestampInSeconds) {
 
-                            runOnUiThread(new Runnable() {
+                            //Prompt user to choose between online and offline timestamp
+                            //("On another device, you were currently reading at [timestamp], [chapter name]")
+                            promptUserForTimestampChange(offlineTimestampInSeconds, onlineTimestampInSeconds, new ICallback<Boolean>(){
                                 @Override
-                                public void run() {
-                                    setSeekPosition(timestampInSeconds * 1000);
-                                    System.out.println("RESTORING TIMESTAMP from online: " + timestampInSeconds);
+                                public void onResult(Boolean shouldUseNewTimestamp) {
+
+                                    if (shouldUseNewTimestamp) {
+                                        runOnUiThread(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                setSeekPosition(onlineTimestampInSeconds * 1000);
+                                                System.out.println("RESTORING TIMESTAMP from online: " + onlineTimestampInSeconds);
+                                            }
+                                        });
+                                    }
+
                                 }
                             });
-
-
                         }
                     });
                 }
             }
         });
+    }
 
-
-
+    private void promptUserForTimestampChange(int offlineTimestampInSeconds, Integer onlineTimestampInSeconds,
+                                              ICallback<Boolean> booleanICallback) {
 
     }
 
