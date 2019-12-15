@@ -29,13 +29,13 @@ public class AmplifyAudiobookManager implements IAudiobookManager, OnlineAudiobo
     }
 
     @Override
-    public int getCurrentPosition(String audiobookId) {
-        return database.getCurrentPosition(audiobookId);
+    public void getCurrentPosition(String audiobookId, ICallback<Integer> callback) {
+        database.getCurrentPosition(audiobookId, callback);
     }
 
     @Override
-    public String getLastDeviceUsed(String audiobookId) {
-        return database.getLastDeviceUsed(audiobookId);
+    public void getLastDeviceUsed(String audiobookId, ICallback<String> callback) {
+        database.getLastDeviceUsed(audiobookId, callback);
     }
 
     @Override
@@ -45,6 +45,5 @@ public class AmplifyAudiobookManager implements IAudiobookManager, OnlineAudiobo
         //Upload to database
         database.updateLastDeviceUsed(audiobookId, thisDeviceId);
     }
-
 
 }

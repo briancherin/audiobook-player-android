@@ -46,8 +46,17 @@ public class AudiobookManager {
      * Check if the current device was the last device that was used to listen to this audiobook
      * @return True if this was the device last used, false otherwise
      */
-    public boolean isDeviceLastUsed(String audiobookId) {
-        return deviceInformationManager.getDeviceId().equals(amplifyAudiobookManager.getLastDeviceUsed(audiobookId));
+    public void isDeviceLastUsed(String audiobookId, final ICallback<Boolean> callback) {
+
+        amplifyAudiobookManager.getLastDeviceUsed(audiobookId, new ICallback<String>(){
+            @Override
+            public void onResult(String lastDeviceUsedId) {
+                //Compare the device IDs
+                callback.onResult(deviceInformationManager.getDeviceId().equals(lastDeviceUsedId));
+            }
+        });
+
+
     }
 
 }

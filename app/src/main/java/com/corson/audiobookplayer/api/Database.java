@@ -99,8 +99,6 @@ public class Database {
 
     public void getCurrentPosition(String audiobookId, final ICallback<Integer> callback) {
 
-
-
         GraphQLCall.Callback<GetBookQuery.Data> bookCallback = new GraphQLCall.Callback<GetBookQuery.Data>() {
             @Override
             public void onResponse(@Nonnull Response<GetBookQuery.Data> response) {
@@ -120,13 +118,42 @@ public class Database {
     }
 
 
-    public String getLastDeviceUsed(String audiobookId) {
-        return "";
+    public void getLastDeviceUsed(String audiobookId, final ICallback<String> callback) {
+        GraphQLCall.Callback<GetBookQuery.Data> bookCallback = new GraphQLCall.Callback<GetBookQuery.Data>() {
+            @Override
+            public void onResponse(@Nonnull Response<GetBookQuery.Data> response) {
+                callback.onResult(response.data().getBook().lastDeviceUsed());
+            }
+
+            @Override
+            public void onFailure(@Nonnull ApolloException e) {
+
+            }
+        };
+
+        awsAppSyncClient.query(GetBookQuery.builder().id(audiobookId).build())
+                .responseFetcher(AppSyncResponseFetchers.CACHE_AND_NETWORK)
+                .enqueue(bookCallback);
     }
 
 
 
     public void updateLastDeviceUsed(String audiobookId, String thisDeviceId) {
+        UpdateBookInput updateBookInput = UpdateBookInput.builder()
+                .id(audiobookId)
+                .lastDeviceUsed(thisDeviceId)
+                .build();
 
+        GraphQLCall.Callback<UpdateBookMutation> mutationCallback = new GraphQLCall.Callback<UpdateBookMutation>() {
+            @Override
+            public void onResponse(@Nonnull Response<UpdateBookMutation> response) {
+                Log.i("Results", "Updated last deviced used as current device.");
+            }
+
+            @Override
+            public void onFailure(@Nonnull ApolloException e) {
+                Log.e("Error", e.toString());
+            }
+        };
     }
 }
