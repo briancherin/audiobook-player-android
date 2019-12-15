@@ -144,9 +144,9 @@ public class Database {
                 .lastDeviceUsed(thisDeviceId)
                 .build();
 
-        GraphQLCall.Callback<UpdateBookMutation> mutationCallback = new GraphQLCall.Callback<UpdateBookMutation>() {
+        GraphQLCall.Callback<UpdateBookMutation.Data> mutationCallback = new GraphQLCall.Callback<UpdateBookMutation.Data>() {
             @Override
-            public void onResponse(@Nonnull Response<UpdateBookMutation> response) {
+            public void onResponse(@Nonnull Response<UpdateBookMutation.Data> response) {
                 Log.i("Results", "Updated last deviced used as current device.");
             }
 
@@ -155,5 +155,9 @@ public class Database {
                 Log.e("Error", e.toString());
             }
         };
+
+        awsAppSyncClient.mutate(UpdateBookMutation.builder().input(updateBookInput).build())
+                .enqueue(mutationCallback);
+
     }
 }
