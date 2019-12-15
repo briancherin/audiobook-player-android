@@ -53,6 +53,14 @@ public class Player extends AppCompatActivity {
         audiobookManager = factory.createAudiobookManager();
         deviceInformationManager = factory.createDeviceInformationManager();
 
+        playButton = findViewById(R.id.play_button);
+        seekForward = findViewById(R.id.button_seek_forward);
+        seekBackward = findViewById(R.id.button_seek_backward);
+        percentBufferedTextView = findViewById(R.id.text_view_percent_buffered);
+        progressTextView = findViewById(R.id.text_view_progress);
+        seekBar = findViewById(R.id.seek_bar);
+
+
         if (savedInstanceState == null) {
             Bundle extras = getIntent().getExtras();
             if (extras == null) {
@@ -91,29 +99,37 @@ public class Player extends AppCompatActivity {
         }
         mediaPlayer.prepareAsync();
 
-        restoreSavedTimestamp();
+
+        mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+            @Override
+            public void onPrepared(MediaPlayer mediaPlayer) {
+                restoreSavedTimestamp();
+                seekBar.setMax(mediaPlayer.getDuration()/1000);
+
+                updateTimestampString();
+
+                mediaPlayerInitialized = true;
+
+            }
+        });
 
 
-        playButton = findViewById(R.id.play_button);
-        seekForward = findViewById(R.id.button_seek_forward);
-        seekBackward = findViewById(R.id.button_seek_backward);
-        percentBufferedTextView = findViewById(R.id.text_view_percent_buffered);
-        progressTextView = findViewById(R.id.text_view_progress);
-        seekBar = findViewById(R.id.seek_bar);
+
+
 
         playButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(!playing){
-                    setPlayButton(false);
+                if(!playing){   //Clicked to start playing
+                    setPlayButton(false);   //Show pause button
                     if(!mediaPlayer.isPlaying()){
                         mediaPlayer.start();
-                        mediaPlayerInitialized = true;
-                        seekBar.setMax(mediaPlayer.getDuration()/1000);
+//                        mediaPlayerInitialized = true;
+//                        seekBar.setMax(mediaPlayer.getDuration()/1000);
                     }
                     playing = true;
-                } else {
-                    setPlayButton(true);
+                } else {    //Clicked to pause
+                    setPlayButton(true);    //Show play button
                     if(mediaPlayer.isPlaying()){
                         mediaPlayer.pause();
                         updateCurrentPositionOnline();
@@ -260,7 +276,6 @@ public class Player extends AppCompatActivity {
      * depending on which is appropriate and more recent.
      * TODO: Prompt user to give them the option to use the online timestamp (if it is different from the offline timestamp)
      */
-
     private void restoreSavedTimestamp() {
 
         int timestamp;
