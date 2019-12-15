@@ -1,7 +1,9 @@
 package com.corson.audiobookplayer;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.DialogInterface;
 import android.media.AudioAttributes;
 import android.media.MediaPlayer;
 import android.os.Bundle;
@@ -109,6 +111,9 @@ public class Player extends AppCompatActivity {
                 seekBar.setMax(mediaPlayer.getDuration()/1000);
 
                 restoreSavedTimestamp();    //Restore the user's progress in the audiobook
+
+                System.out.println("IN MEDIA PLAYER ONPREPARED LISTENER");
+
             }
         });
 
@@ -234,10 +239,18 @@ public class Player extends AppCompatActivity {
         return mediaPlayer.getCurrentPosition() / 1000;
     }
 
-    private void setSeekPosition(int positionInMillis) {
-        mediaPlayer.seekTo(positionInMillis);
-        setSeekBarSeconds(positionInMillis / 1000);
-        updateTimestampString();
+    private void setSeekPosition(final int positionInMillis) {
+
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                mediaPlayer.seekTo(positionInMillis);
+                setSeekBarSeconds(positionInMillis / 1000);
+                updateTimestampString();
+            }
+        });
+
+
     }
 
     private void updateTimestampString() {
@@ -270,9 +283,11 @@ public class Player extends AppCompatActivity {
 
     private void updateCurrentPositionOnline() {
         audiobookManager.updateCurrentPositionOnline(bookId, getCurrentTimestampSeconds());
+        audiobookManager.updateLastDeviceUsed(bookId);
     }
 
 
+    boolean promptedUserForTimestampChange = false;
     /**
      * Set the seek position to the last timestamp listened to,
      * either from the offline-saved timestamp, or from the database timestamp,
@@ -281,50 +296,55 @@ public class Player extends AppCompatActivity {
      */
     private void restoreSavedTimestamp() {
 
+        System.out.println("IN RESTORE SAVED TIEMSTAMP");
+
         //First callback: check if this was the last-used device
         //Second callback: get the timestamp last saved online
         //Third callback: Ask the user if they want to use the offline (old) or online (new) timestamp
+
+        //Restore offline timestamp, as the default.
+        final int offlineTimestampInSeconds = audiobookManager.getCurrentPositionOffline(bookId);
+        setSeekPosition(offlineTimestampInSeconds * 1000);
 
         //Check if the current device is the last device used
         audiobookManager.isDeviceLastUsed(bookId, new ICallback<Boolean>() {
             @Override
             public void onResult(Boolean isDeviceLastUsed) {
 
-                final int offlineTimestampInSeconds = audiobookManager.getCurrentPositionOffline(bookId);
+                System.out.println("Is device last used: " + isDeviceLastUsed);
 
-                //Use the offline timestamp if the device is offline, or if this was the last
-                //device that was used to play this audiobook
-                boolean shouldUseOfflineTimestamp = deviceInformationManager.deviceIsOffline()
-                        || isDeviceLastUsed;
 
-                if(shouldUseOfflineTimestamp) {
-                    setSeekPosition(offlineTimestampInSeconds * 1000);
-                } else {    //Could use online timestamp
 
+                //Use the online timestamp if this was not the last device used
+                if(!deviceInformationManager.deviceIsOffline() && !isDeviceLastUsed) {
 
                     //Get the online timestamp
                     audiobookManager.getCurrentPositionOnline(bookId, new ICallback<Integer>() {
                         @Override
                         public void onResult(final Integer onlineTimestampInSeconds) {
 
-                            //Prompt user to choose between online and offline timestamp
-                            //("On another device, you were currently reading at [timestamp], [chapter name]")
-                            promptUserForTimestampChange(offlineTimestampInSeconds, onlineTimestampInSeconds, new ICallback<Boolean>(){
-                                @Override
-                                public void onResult(Boolean shouldUseNewTimestamp) {
+                            if (offlineTimestampInSeconds != onlineTimestampInSeconds && !promptedUserForTimestampChange){
+                                promptedUserForTimestampChange = true;  //Prevent mutliple callbacks
 
-                                    if (shouldUseNewTimestamp) {
-                                        runOnUiThread(new Runnable() {
-                                            @Override
-                                            public void run() {
-                                                setSeekPosition(onlineTimestampInSeconds * 1000);
-                                                System.out.println("RESTORING TIMESTAMP from online: " + onlineTimestampInSeconds);
-                                            }
-                                        });
+                                //Prompt user to choose between online and offline timestamp
+                                //("On another device, you were currently reading at [timestamp], [chapter name]")
+                                promptUserForTimestampChange(offlineTimestampInSeconds, onlineTimestampInSeconds, new ICallback<Boolean>() {
+                                    @Override
+                                    public void onResult(Boolean shouldUseNewTimestamp) {
+
+                                        if (shouldUseNewTimestamp) {
+                                            runOnUiThread(new Runnable() {
+                                                @Override
+                                                public void run() {
+                                                    setSeekPosition(onlineTimestampInSeconds * 1000);
+                                                    System.out.println("RESTORING TIMESTAMP from online: " + onlineTimestampInSeconds);
+                                                }
+                                            });
+                                        }
+
                                     }
-
-                                }
-                            });
+                                });
+                            }
                         }
                     });
                 }
@@ -333,7 +353,45 @@ public class Player extends AppCompatActivity {
     }
 
     private void promptUserForTimestampChange(int offlineTimestampInSeconds, Integer onlineTimestampInSeconds,
-                                              ICallback<Boolean> booleanICallback) {
+                                              final ICallback<Boolean> booleanICallback) {
+
+        System.out.println("IN PROMPT USER METHOD");
+
+        String oldTimestamp = DateTimeUtils.getTimestampFromMilli(offlineTimestampInSeconds * 1000);
+        String newTimestamp = DateTimeUtils.getTimestampFromMilli(onlineTimestampInSeconds * 1000);
+
+        final String message = "You're listening at " + oldTimestamp + " on this device, but " + newTimestamp +
+                " on another device. Would you like to continue listening at " + newTimestamp + "?";
+
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+
+                AlertDialog.Builder builder = new AlertDialog.Builder(Player.this);
+                builder.setTitle("Sync playback position?")
+                        .setMessage(message);
+
+                builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        booleanICallback.onResult(true);
+                    }
+                });
+
+                builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        booleanICallback.onResult(false);
+                    }
+                });
+
+
+                AlertDialog dialog = builder.create();
+                dialog.show();
+            }
+        });
+
+
 
     }
 
