@@ -103,12 +103,12 @@ public class Player extends AppCompatActivity {
         mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
             @Override
             public void onPrepared(MediaPlayer mediaPlayer) {
-                restoreSavedTimestamp();
+                mediaPlayerInitialized = true;
+
                 seekBar.setMax(mediaPlayer.getDuration()/1000);
 
-                updateTimestampString();
 
-                mediaPlayerInitialized = true;
+                restoreSavedTimestamp();
 
             }
         });
@@ -228,13 +228,17 @@ public class Player extends AppCompatActivity {
         if (newPosition < 0) newPosition = 0;
         if (newPosition > totalDuration) newPosition = totalDuration;
 
-        mediaPlayer.seekTo(newPosition);
-        setSeekBarSeconds(newPosition / 1000);
-        updateTimestampString();
+        setSeekPosition(newPosition);
     }
 
     private int getCurrentTimestampSeconds() {
         return mediaPlayer.getCurrentPosition() / 1000;
+    }
+
+    private void setSeekPosition(int positionInMillis) {
+        mediaPlayer.seekTo(positionInMillis);
+        setSeekBarSeconds(positionInMillis / 1000);
+        updateTimestampString();
     }
 
     private void updateTimestampString() {
@@ -278,15 +282,24 @@ public class Player extends AppCompatActivity {
      */
     private void restoreSavedTimestamp() {
 
-        int timestamp;
+        int timestampInSeconds;
 
-        if(deviceInformationManager.deviceIsOffline() || audiobookManager.isDeviceLastUsed(bookId)) {
-            timestamp = audiobookManager.getCurrentPositionOffline(bookId);
+        boolean shouldUseOfflineTimestamp = deviceInformationManager.deviceIsOffline()
+                || audiobookManager.isDeviceLastUsed(bookId);
+
+        shouldUseOfflineTimestamp = true; //DEBUGGING
+
+        if(shouldUseOfflineTimestamp) {
+            timestampInSeconds = audiobookManager.getCurrentPositionOffline(bookId);
         } else {
-            timestamp = audiobookManager.getCurrentPositionOnline(bookId);
+            //Prompt user to choose between online and offline timestamp
+            //("On another device, you were currently reading at [timestamp], [chapter name]")
+            timestampInSeconds = audiobookManager.getCurrentPositionOnline(bookId);
         }
 
-        setSeekBarSeconds(timestamp / 1000);
+        System.out.println("RESTORING TIMESTAMP: " + timestampInSeconds);
+
+        setSeekPosition(timestampInSeconds * 1000);
     }
 
     String getTimestampFromMilli(long milli) {
