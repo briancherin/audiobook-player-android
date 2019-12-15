@@ -30,8 +30,8 @@ public class AudiobookManager {
         amplifyAudiobookManager.updateCurrentPosition(audiobookId, timestampSeconds);
     }
 
-    public int getCurrentPositionOnline(String audiobookId) {
-        return amplifyAudiobookManager.getCurrentPosition(audiobookId);
+    public void getCurrentPositionOnline(String audiobookId, ICallback<Integer> callback) {
+        amplifyAudiobookManager.getCurrentPosition(audiobookId, callback);
     }
 
     public void updateCurrentPositionOffline(String audiobookId, int timestampSeconds) {

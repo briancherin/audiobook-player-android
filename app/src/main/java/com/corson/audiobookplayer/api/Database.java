@@ -3,6 +3,9 @@ package com.corson.audiobookplayer.api;
 import android.content.Context;
 import android.util.Log;
 
+import com.amazonaws.amplify.generated.graphql.CreateBookMutation;
+import com.amazonaws.amplify.generated.graphql.GetBookQuery;
+import com.amazonaws.amplify.generated.graphql.UpdateBookMutation;
 import com.amazonaws.mobile.client.AWSMobileClient;
 import com.amazonaws.mobile.config.AWSConfiguration;
 import com.amazonaws.mobileconnectors.appsync.AWSAppSyncClient;
@@ -18,6 +21,9 @@ import com.corson.audiobookplayer.model.Audiobook;
 import java.util.ArrayList;
 
 import javax.annotation.Nonnull;
+
+import type.CreateBookInput;
+import type.UpdateBookInput;
 
 public class Database {
 
@@ -67,5 +73,60 @@ public class Database {
     }
 
 
+    public void updateCurrentPosition(String audiobookId, int newTimestamp) {
 
+        UpdateBookInput updateBookInput = UpdateBookInput.builder()
+                .id(audiobookId)
+                .currentPositionMillis(newTimestamp)
+                .build();
+
+        GraphQLCall.Callback<UpdateBookMutation.Data> mutationCallback = new GraphQLCall.Callback<UpdateBookMutation.Data>() {
+            @Override
+            public void onResponse(@Nonnull Response<UpdateBookMutation.Data> response) {
+                Log.i("Results", "Updated current position.");
+            }
+
+            @Override
+            public void onFailure(@Nonnull ApolloException e) {
+                Log.e("Error", e.toString());
+            }
+        };
+
+        awsAppSyncClient.mutate(UpdateBookMutation.builder().input(updateBookInput).build())
+                .enqueue(mutationCallback);
+
+    }
+
+    public void getCurrentPosition(String audiobookId, final ICallback<Integer> callback) {
+
+
+
+        GraphQLCall.Callback<GetBookQuery.Data> bookCallback = new GraphQLCall.Callback<GetBookQuery.Data>() {
+            @Override
+            public void onResponse(@Nonnull Response<GetBookQuery.Data> response) {
+                callback.onResult(response.data().getBook().currentPositionMillis());
+            }
+
+            @Override
+            public void onFailure(@Nonnull ApolloException e) {
+
+            }
+        };
+
+        awsAppSyncClient.query(GetBookQuery.builder().id(audiobookId).build())
+                .responseFetcher(AppSyncResponseFetchers.CACHE_AND_NETWORK)
+                .enqueue(bookCallback);
+
+    }
+
+
+    public String getLastDeviceUsed(String audiobookId) {
+        return "";
+    }
+
+
+
+    public void updateLastDeviceUsed(String audiobookId, String thisDeviceId) {
+
+    }
 }

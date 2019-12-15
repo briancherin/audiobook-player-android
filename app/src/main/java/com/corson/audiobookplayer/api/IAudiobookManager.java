@@ -24,9 +24,10 @@ public interface IAudiobookManager {
     /**
      * Retrieve the latest timestamp listened to for the specified audiobook
      * @param audiobookId   The id of the audiobook being queried
+     * @param callback The callback which will receive the integer of the current timestamp
      * @return  The current position in seconds
      */
-    int getCurrentPosition(String audiobookId);
+    void getCurrentPosition(String audiobookId, ICallback<Integer> callback);
 }
 
 

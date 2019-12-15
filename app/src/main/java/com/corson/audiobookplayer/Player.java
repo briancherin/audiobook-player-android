@@ -13,8 +13,9 @@ import android.widget.TextView;
 
 import com.corson.audiobookplayer.api.AudioStore;
 import com.corson.audiobookplayer.api.AudiobookManager;
-import com.corson.audiobookplayer.api.DeviceInformationManager;
+import com.corson.audiobookplayer.api.DateTimeUtils;
 import com.corson.audiobookplayer.api.Factory;
+import com.corson.audiobookplayer.api.ICallback;
 import com.corson.audiobookplayer.api.IDeviceInformationManager;
 
 import java.io.IOException;
@@ -107,9 +108,7 @@ public class Player extends AppCompatActivity {
 
                 seekBar.setMax(mediaPlayer.getDuration()/1000);
 
-
                 restoreSavedTimestamp();
-
             }
         });
 
@@ -170,7 +169,7 @@ public class Player extends AppCompatActivity {
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 if (mediaPlayerInitialized && fromUser) {
                     mediaPlayer.seekTo(progress * 1000);
-                    progressTextView.setText(getTimestampFromMilli(mediaPlayer.getCurrentPosition()) + " / " + getTimestampFromMilli(mediaPlayer.getDuration()));
+                    updateTimestampString();
                 }
 
             }
@@ -242,7 +241,7 @@ public class Player extends AppCompatActivity {
     }
 
     private void updateTimestampString() {
-        progressTextView.setText(getTimestampFromMilli(mediaPlayer.getCurrentPosition()) + " / " + getTimestampFromMilli(mediaPlayer.getDuration()));
+        progressTextView.setText(DateTimeUtils.getTimestampFromMilli(mediaPlayer.getCurrentPosition()) + " / " + DateTimeUtils.getTimestampFromMilli(mediaPlayer.getDuration()));
     }
 
     /**
@@ -287,34 +286,31 @@ public class Player extends AppCompatActivity {
         boolean shouldUseOfflineTimestamp = deviceInformationManager.deviceIsOffline()
                 || audiobookManager.isDeviceLastUsed(bookId);
 
-        shouldUseOfflineTimestamp = true; //DEBUGGING
-
         if(shouldUseOfflineTimestamp) {
             timestampInSeconds = audiobookManager.getCurrentPositionOffline(bookId);
-        } else {
-            //Prompt user to choose between online and offline timestamp
+            setSeekPosition(timestampInSeconds * 1000);
+        } else {    //May use online timestamp
+            //TODO: Prompt user to choose between online and offline timestamp
             //("On another device, you were currently reading at [timestamp], [chapter name]")
-            timestampInSeconds = audiobookManager.getCurrentPositionOnline(bookId);
+
+            audiobookManager.getCurrentPositionOnline(bookId, new ICallback<Integer>() {
+                @Override
+                public void onResult(final Integer timestampInSeconds) {
+
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            setSeekPosition(timestampInSeconds * 1000);
+                            System.out.println("RESTORING TIMESTAMP from online: " + timestampInSeconds);
+                        }
+                    });
+
+
+                }
+            });
         }
 
-        System.out.println("RESTORING TIMESTAMP: " + timestampInSeconds);
 
-        setSeekPosition(timestampInSeconds * 1000);
-    }
-
-    String getTimestampFromMilli(long milli) {
-        int timeInSeconds = (int) (milli / 1000);
-        int seconds = timeInSeconds % 60;
-        int timeInMinutes = timeInSeconds / 60;
-        int minutes = timeInMinutes % 60;
-        int hours = timeInMinutes / 60;
-
-        String secondsString = (seconds < 10) ? ("0" + seconds) : seconds + "";
-        String minutesString = (minutes < 10) ? ("0" + minutes) : minutes + "";
-        String hoursString = (hours < 10) ? ("0" + hours) : hours + "";
-
-
-        return hoursString + ":" + minutesString + ":" + secondsString;
     }
 
     @Override
