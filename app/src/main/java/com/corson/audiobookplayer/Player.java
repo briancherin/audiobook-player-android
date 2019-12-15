@@ -196,6 +196,7 @@ public class Player extends AppCompatActivity {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
+                System.out.println("in runOnUiThread runnable 1: media player intialized: " + mediaPlayerInitialized);
                 if (mediaPlayerInitialized && mediaPlayer.isPlaying()) {
                     //Update the position of the progress bar to match the media player position
                     int currentPositionSeconds = getCurrentTimestampSeconds();
@@ -399,6 +400,7 @@ public class Player extends AppCompatActivity {
     public void onDestroy() {
         super.onDestroy();
         mediaPlayer.release();
+        mediaPlayerInitialized = false; //TODO: Should be able to listen while app is in background
     }
 
 
