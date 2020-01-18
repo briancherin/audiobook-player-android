@@ -186,6 +186,7 @@ public class Player extends AppCompatActivity {
                 if (mediaPlayerInitialized && fromUser) {
                     mediaPlayer.seekTo(progress * 1000);
                     updateTimestampString();
+                    updateCurrentPositionOfflineAndOnline();
                 }
 
             }
@@ -245,6 +246,7 @@ public class Player extends AppCompatActivity {
         if (newPosition > totalDuration) newPosition = totalDuration;
 
         setSeekPosition(newPosition);
+        updateCurrentPositionOfflineAndOnline();
     }
 
     private int getCurrentTimestampSeconds() {
@@ -298,6 +300,11 @@ public class Player extends AppCompatActivity {
         audiobookManager.updateLastDeviceUsed(bookId);
     }
 
+    //Saves current position both offline and online
+    private void updateCurrentPositionOfflineAndOnline() {
+        updateCurrentPositionOnline();
+        audiobookManager.updateCurrentPositionOffline(bookId, getCurrentTimestampSeconds());
+    }
 
     boolean promptedUserForTimestampChange = false;
     /**
@@ -349,6 +356,7 @@ public class Player extends AppCompatActivity {
                                                 @Override
                                                 public void run() {
                                                     setSeekPosition(onlineTimestampInSeconds * 1000);
+                                                    updateCurrentPositionOfflineAndOnline();
                                                     System.out.println("RESTORING TIMESTAMP from online: " + onlineTimestampInSeconds);
                                                 }
                                             });
