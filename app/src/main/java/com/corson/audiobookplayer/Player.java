@@ -85,8 +85,6 @@ public class Player extends AppCompatActivity {
             getSupportActionBar().setTitle(bookTitle);
         }
 
-        String audioUrl = audioStore.getAudioStreamUrl(bookId, bookFileExtension);
-        System.out.println("In Player: audioUrl: " + audioUrl);
 
         mediaPlayer = new MediaPlayer();
         mediaPlayer.setAudioAttributes(
@@ -95,12 +93,25 @@ public class Player extends AppCompatActivity {
                         .setContentType(AudioAttributes.CONTENT_TYPE_MOVIE)
                         .build());
 
-        try {
-            mediaPlayer.setDataSource(audioUrl);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        mediaPlayer.prepareAsync();
+        //Get the audio streaming URL for this specific book
+        audioStore.getAudioStreamUrl(bookId, bookFileExtension, new ICallback<String>() {
+            @Override
+            public void onResult(String audioUrl) {
+                System.out.println("In Player: audioUrl: " + audioUrl);
+
+                //Tell the Media Player to play from this url
+                try {
+                    mediaPlayer.setDataSource(audioUrl);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                mediaPlayer.prepareAsync();
+
+            }
+        });
+
+
+
 
 
         mediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {

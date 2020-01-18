@@ -5,14 +5,14 @@ import android.content.Context;
 import com.corson.audiobookplayer.model.Audiobook;
 
 import java.util.ArrayList;
- /*
-public class AmplifyAudiobookManager implements IAudiobookManager, OnlineAudiobookManager {
 
-   AmplifyDatabase database;
+public class FirebaseAudiobookManager implements IAudiobookManager, OnlineAudiobookManager {
+
+    FirebaseDatabaseHelper database;
     IDeviceInformationManager deviceInformationManager;
 
-    public AmplifyAudiobookManager(Context context, IDeviceInformationManager deviceInformationManager) {
-        database = new AmplifyDatabase(context);
+    public FirebaseAudiobookManager(Context context, IDeviceInformationManager deviceInformationManager) {
+        database = new FirebaseDatabaseHelper(context);
         this.deviceInformationManager = deviceInformationManager;
     }
 
@@ -47,4 +47,3 @@ public class AmplifyAudiobookManager implements IAudiobookManager, OnlineAudiobo
     }
 
 }
-*/

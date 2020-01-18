@@ -1,4 +1,5 @@
 package com.corson.audiobookplayer.api;
+/*
 
 import com.amazonaws.HttpMethod;
 import com.amazonaws.regions.Region;
@@ -9,6 +10,7 @@ import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
 import com.amazonaws.services.s3.model.ListObjectsRequest;
 import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
+*/
 
 import java.net.URL;
 import java.util.ArrayList;
@@ -16,7 +18,7 @@ import java.util.Date;
 import java.util.List;
 
 public class  S3Helper {
-    private AmazonS3Client s3;
+    /*private AmazonS3Client s3;
 
     public S3Helper() {
         s3 = new AmazonS3Client(AuthHelper.getAWSCredentials(), Region.getRegion(Regions.US_EAST_1));
@@ -53,7 +55,7 @@ public class  S3Helper {
 
         GeneratePresignedUrlRequest request = new GeneratePresignedUrlRequest(bucketName, key);
         request.setMethod(HttpMethod.GET);
-        request.setExpiration(DateUtils.addHoursToDate(new Date(), hoursUntilExpires));
+        request.setExpiration(DateTimeUtils.addHoursToDate(new Date(), hoursUntilExpires));
 
         URL presignedUrl = s3.generatePresignedUrl(request);
 
@@ -74,6 +76,6 @@ public class  S3Helper {
     private String removePrefixFromKey(String keyWithPrefix) {
         String prefix = getPrivateUserFolder() + "/";
         return keyWithPrefix.split(prefix)[1];
-    }
+    }*/
 
 }

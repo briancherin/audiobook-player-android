@@ -5,6 +5,8 @@ public class Audiobook {
     private String title;
     private String fileExtension;
 
+    public Audiobook() {}
+
     public Audiobook(String id, String title, String fileExtension) {
         this.id = id;
         this.title = title;

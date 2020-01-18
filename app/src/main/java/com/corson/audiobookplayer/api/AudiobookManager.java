@@ -6,32 +6,32 @@ import java.util.ArrayList;
 
 public class AudiobookManager {
     OfflineAudiobookManager offlineAudiobookManager;
-    AmplifyAudiobookManager amplifyAudiobookManager;
+    FirebaseAudiobookManager firebaseAudiobookManager;
     IDeviceInformationManager deviceInformationManager;
 
     boolean shouldUseOnline;
 
-    public AudiobookManager(OfflineAudiobookManager offlineAudiobookManager, AmplifyAudiobookManager amplifyAudiobookManager, IDeviceInformationManager deviceInformationManager, boolean shouldUseOnline) {
+    public AudiobookManager(OfflineAudiobookManager offlineAudiobookManager, FirebaseAudiobookManager firebaseAudiobookManager, IDeviceInformationManager deviceInformationManager, boolean shouldUseOnline) {
         this.offlineAudiobookManager = offlineAudiobookManager;
-        this.amplifyAudiobookManager = amplifyAudiobookManager;
+        this.firebaseAudiobookManager = firebaseAudiobookManager;
         this.deviceInformationManager = deviceInformationManager;
         this.shouldUseOnline = shouldUseOnline;
     }
 
     public void listBooks(ICallback<ArrayList<Audiobook>> callback) {
         if (shouldUseOnline) {
-            amplifyAudiobookManager.listBooks(callback);
+            firebaseAudiobookManager.listBooks(callback);
         } else {
             offlineAudiobookManager.listBooks(callback);
         }
     }
 
     public void updateCurrentPositionOnline(String audiobookId, int timestampSeconds) {
-        amplifyAudiobookManager.updateCurrentPosition(audiobookId, timestampSeconds);
+        firebaseAudiobookManager.updateCurrentPosition(audiobookId, timestampSeconds);
     }
 
     public void getCurrentPositionOnline(String audiobookId, ICallback<Integer> callback) {
-        amplifyAudiobookManager.getCurrentPosition(audiobookId, callback);
+        firebaseAudiobookManager.getCurrentPosition(audiobookId, callback);
     }
 
     public void updateCurrentPositionOffline(String audiobookId, int timestampSeconds) {
@@ -48,7 +48,7 @@ public class AudiobookManager {
      */
     public void isDeviceLastUsed(String audiobookId, final ICallback<Boolean> callback) {
 
-        amplifyAudiobookManager.getLastDeviceUsed(audiobookId, new ICallback<String>(){
+        firebaseAudiobookManager.getLastDeviceUsed(audiobookId, new ICallback<String>(){
             @Override
             public void onResult(String lastDeviceUsedId) {
                 //Compare the device IDs
@@ -57,6 +57,14 @@ public class AudiobookManager {
         });
 
 
+    }
+
+    /**
+     * Set the current device as the last device that hte specified audiobook was listened on
+     * @param audiobookId
+     */
+    public void updateLastDeviceUsed(String audiobookId) {
+        firebaseAudiobookManager.updateLastDeviceUsed(audiobookId);
     }
 
 }

@@ -1,4 +1,5 @@
 apply plugin: 'com.android.application'
+apply plugin: 'com.google.gms.google-services'  // Google Services plugin
 
 android {
     compileSdkVersion 29
@@ -27,6 +28,11 @@ dependencies {
     androidTestImplementation 'androidx.test:runner:1.2.0'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
 
+    implementation 'com.google.firebase:firebase-auth:19.2.0'
+    implementation 'com.firebaseui:firebase-ui-auth:4.3.1'
+    implementation 'com.google.firebase:firebase-database:19.2.0'
+    implementation 'com.google.firebase:firebase-storage:19.1.0'
+/*
     //Base SDK
     implementation 'com.amazonaws:aws-android-sdk-core:2.14.+'
     //AppSync SDK
@@ -43,7 +49,7 @@ dependencies {
     implementation 'com.amazonaws:aws-android-sdk-s3:2.14.+'
     implementation ('com.amazonaws:aws-android-sdk-mobile-client:2.14.+@aar') { transitive = true }
     implementation ('com.amazonaws:aws-android-sdk-auth-userpools:2.14.+@aar') { transitive = true }
-
+*/
     implementation 'androidx.recyclerview:recyclerview:1.0.0'
     implementation 'org.jetbrains:annotations-java5:15.0'
     implementation 'androidx.cardview:cardview:1.0.0'

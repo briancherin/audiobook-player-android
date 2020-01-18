@@ -6,30 +6,33 @@ public class Factory {
 
     private Context context;
 
-    public Factory() {
-
-    }
-
     public Factory(Context context) {
         this.context = context;
     }
 
-    public AudioManager createAudioManager() throws NoContextProvidedException{
-        if (context != null) {
-            return new AmplifyAudioManager(context);
-        } else {
-            throw new NoContextProvidedException();
-        }
+    //TODO: There shouldn't be duplicates of createDeviceInformationManager. Create (all?) in constructor, and then return the objects in their methods?
+    public AudiobookManager createAudiobookManager() {
+        return new AudiobookManager(createOfflineAudiobookManager(), createFirebaseAudiobookManager(), createDeviceInformationManager(),true);
     }
 
     public AudioStore createAudioStore() {
-        return new AmplifyAudioStore();
+        return new FirebaseAudioStore();
     }
 
-    public class NoContextProvidedException extends Exception {
-        public NoContextProvidedException () {
-            super("Must provide application context in constructor.");
-        }
+    private OfflineAudiobookManager createOfflineAudiobookManager() {
+        return new OfflineAudiobookManager(context);
     }
 
+    /*private AmplifyAudiobookManager createAmplifyAudiobookManager() {
+        return new AmplifyAudiobookManager(context, createDeviceInformationManager());
+    }
+    */
+
+    private FirebaseAudiobookManager createFirebaseAudiobookManager() {
+        return new FirebaseAudiobookManager(context, createDeviceInformationManager());
+    }
+
+    public IDeviceInformationManager createDeviceInformationManager() {
+        return new DeviceInformationManager(context);
+    }
 }
