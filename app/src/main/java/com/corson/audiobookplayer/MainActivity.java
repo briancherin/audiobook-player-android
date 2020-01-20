@@ -64,51 +64,10 @@ public class MainActivity extends AppCompatActivity implements BookListRecyclerV
                 .setAvailableProviders(providers)
                 .build(),
                 RC_SIGN_IN);
-/*
-        AWSMobileClient.getInstance().initialize(getApplicationContext(), new Callback<UserStateDetails>() {
-            @Override
-            public void onResult(UserStateDetails result) {
-                Log.i("INIT", "onResult: " + result.getUserState());
-                switch(result.getUserState()) {
-                    case SIGNED_IN:
-                        //Get list of books
 
-                       initializeBookList();
-
-                        break;
-                    case SIGNED_OUT:
-                        showSignIn();
-                        break;
-                    default:
-                        AWSMobileClient.getInstance().signOut();
-                        break;
-                }
-            }
-
-            @Override
-            public void onError(Exception e) {
-                Log.e("INIT", "Initialization error.", e);
-            }
-        });
-*/
     }
 
 
-/*
-    public void showSignIn() {
-        AWSMobileClient.getInstance().showSignIn(this, new Callback<UserStateDetails>() {
-            @Override
-            public void onResult(UserStateDetails result) {
-                Log.d("SHOW_SIGN_IN", "onResult: " + result.getUserState());
-            }
-
-            @Override
-            public void onError(Exception e) {
-                Log.e("SHOW_SIGN_IN", "onError: ", e);
-            }
-        });
-    }
-*/
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
