@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">My Audiobook Player</string>
+    <string name="navdraweropen">Open</string>
+    <string name="navdrawerclose">Close</string>
 </resources>

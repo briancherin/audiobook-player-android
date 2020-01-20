@@ -29,6 +29,12 @@ public class BookListRecyclerViewAdapter extends RecyclerView.Adapter<BookListRe
         }
     }
 
+    public void clearAll() {
+        int size = data.size();
+        data.clear();
+        notifyItemRangeRemoved(0, size);
+    }
+
     public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         TextView textViewKey;
 

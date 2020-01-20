@@ -3,15 +3,19 @@ package com.corson.audiobookplayer;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 
 import com.corson.audiobookplayer.api.AudiobookManager;
+import com.corson.audiobookplayer.api.AuthHelper;
 import com.corson.audiobookplayer.api.Factory;
 import com.corson.audiobookplayer.api.ICallback;
 import com.corson.audiobookplayer.model.Audiobook;
@@ -21,6 +25,8 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+
+import com.google.android.material.navigation.NavigationView;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -33,10 +39,14 @@ public class MainActivity extends AppCompatActivity implements BookListRecyclerV
     private Factory factory;
     private AudiobookManager audiobookManager;
 
-    private FirebaseAuth firebaseAuth;
+    List<AuthUI.IdpConfig> providers;
 
     BookListRecyclerViewAdapter adapter;
     RecyclerView recyclerView;
+
+    private NavigationView navigationView;
+    private DrawerLayout drawerLayout;
+    private ActionBarDrawerToggle actionBarToggle;
 
     ArrayList<Audiobook> savedBooks;
 
@@ -45,25 +55,51 @@ public class MainActivity extends AppCompatActivity implements BookListRecyclerV
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        factory = new Factory(this);
+
+        //Set up list of audiobooks
         recyclerView = findViewById(R.id.bookListRecyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-        factory = new Factory(this);
+
+        //Set up side navigation bar
+        navigationView = findViewById(R.id.navigationView);
+        drawerLayout = findViewById(R.id.drawerLayout);
+        actionBarToggle = new ActionBarDrawerToggle(this, drawerLayout, R.string.navdraweropen, R.string.navdrawerclose);
+        drawerLayout.addDrawerListener(actionBarToggle);
+        actionBarToggle.syncState();
+
+        navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
+                int id = menuItem.getItemId();
+                switch(id) {
+                    case R.id.nav_menu_logout:
+                        signOut();
+                        break;
+                    default:
+                        return true;
+                }
+                return true;
+            }
+        });
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
 
 
-        firebaseAuth = FirebaseAuth.getInstance();
-        List<AuthUI.IdpConfig> providers = Arrays.asList(
+        //Set up auth
+        providers = Arrays.asList(
                 new AuthUI.IdpConfig.EmailBuilder().build(),
                 new AuthUI.IdpConfig.GoogleBuilder().build()
         );
 
-        startActivityForResult(
-                AuthUI.getInstance()
-                    .createSignInIntentBuilder()
-                .setAvailableProviders(providers)
-                .build(),
-                RC_SIGN_IN);
+        //If user isn't signed in, prompt for sign in
+        if (AuthHelper.getCurrentUserId() == null) {
+            showSignIn();
+        } else {
+            initializeBookList();
+        }
+
 
     }
 
@@ -74,7 +110,6 @@ public class MainActivity extends AppCompatActivity implements BookListRecyclerV
         super.onActivityResult(requestCode, resultCode, data);
 
         if (requestCode == RC_SIGN_IN) {
-            IdpResponse response = IdpResponse.fromResultIntent(data);
 
             if (resultCode == RESULT_OK) {
                 //Successfully signed in
@@ -84,6 +119,7 @@ public class MainActivity extends AppCompatActivity implements BookListRecyclerV
             } else {
                 //Sign in failed
                 System.out.println("sign in failed");
+                showSignIn();
             }
         }
     }
@@ -96,6 +132,17 @@ public class MainActivity extends AppCompatActivity implements BookListRecyclerV
         intent.putExtra(MyConstants.BUNDLE_BOOK_FILE_EXTENSION_EXTRA, savedBooks.get(position).getFileExtension());
         startActivity(intent);
     }
+
+    //Nav drawer
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (actionBarToggle.onOptionsItemSelected(item)) {
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
 
     public void initializeBookList() {
 
@@ -122,7 +169,16 @@ public class MainActivity extends AppCompatActivity implements BookListRecyclerV
         });
     }
 
-    public void signOut() {
+    private void showSignIn() {
+        startActivityForResult(
+                AuthUI.getInstance()
+                        .createSignInIntentBuilder()
+                        .setAvailableProviders(providers)
+                        .build(),
+                RC_SIGN_IN);
+    }
+
+    private void signOut() {
         AuthUI.getInstance()
                 .signOut(this)
                 .addOnCompleteListener(new OnCompleteListener<Void>() {
@@ -131,6 +187,13 @@ public class MainActivity extends AppCompatActivity implements BookListRecyclerV
 
                     }
                 });
+
+        //Prompt for sign in
+        showSignIn();
+
+
+        //Erase old user's stuff
+        adapter.clearAll();
     }
 
 }
